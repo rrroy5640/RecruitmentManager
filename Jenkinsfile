@@ -17,21 +17,24 @@ pipeline{
             }
         }
 
-        stage('Install Dependencies') {
-            steps {
-                script {
-                    sh 'npm install -g aws-cdk'
-                }
-                stage('Install Frontend Dependencies') {
-                    steps {
-                        dir('frontend') {
+        stage('Install CDK' ){
+            steps{
+                sh 'npm i -g aws-cdk'
+            }
+        }
+
+        stage('Install Dependencies'){
+            parallel{
+                stage('Frontend'){
+                    steps{
+                        dir('frontend'){
                             sh 'npm install'
                         }
                     }
                 }
-                stage('Install Backend Dependencies') {
-                    steps {
-                        dir('backend') {
+                stage('Backend'){
+                    steps{
+                        dir('backend'){
                             sh 'npm install'
                         }
                     }
