@@ -57,12 +57,8 @@ pipeline{
 
         stage('Build and Package'){
             steps{
-                stage('Frontend'){
-                    steps{
-                        dir('frontend'){
-                            sh 'npm run build'
-                        }
-                    }
+                dir('frontend'){
+                    sh 'npm run build'
                 }
             }
         }
