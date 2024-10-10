@@ -147,7 +147,7 @@ The system provides the following key functions:
   - Implemented using AWS Lambda functions with Node.js.
   - APIs exposed via Amazon API Gateway.
 - **Data Storage**
-  - Structured Data: Amazon DynamoDB or Amazon RDS.
+  - Structured Data: Amazon DynamoDB.
   - Object Storage: Amazon S3 for resumes and files.
 - **Deployment**
   - Users deploy the system in their own AWS accounts using Infrastructure as Code (IaC) tools like AWS CloudFormation or AWS CDK.

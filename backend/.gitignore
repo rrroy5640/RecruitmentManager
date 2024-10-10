@@ -21,3 +21,7 @@ node_modules
 
 # AWS SAM artifacts
 .aws-sam/artifacts
+
+# jest
+/tests/unit/__snapshots__
+/tests/unit/__tests__
