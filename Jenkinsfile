@@ -81,7 +81,7 @@ pipeline{
                 script{
                     withAWS(credentials: 'aws-credentials'){
                         dir('iac'){
-                            sh 'cdk deploy -require-approval never'
+                            sh 'cdk deploy --require-approval never'
                         }
                     }
                 }
