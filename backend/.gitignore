@@ -1,0 +1,23 @@
+# Node modules
+node_modules
+
+# AWS SAM
+.aws-sam
+
+# AWS SAM build artifacts
+.aws-sam/build
+
+# AWS SAM deployment artifacts
+.aws-sam/deployed
+
+# AWS SAM template files
+.aws-sam/template.yaml
+
+# AWS SAM configuration files
+.aws-sam/config.toml
+
+# AWS SAM logs
+.aws-sam/logs
+
+# AWS SAM artifacts
+.aws-sam/artifacts

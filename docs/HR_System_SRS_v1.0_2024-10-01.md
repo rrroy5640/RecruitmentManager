@@ -2,8 +2,8 @@
 
 ## **Software Requirements Specification (SRS)**
 
-**Version:** 1.0  
-**Date:** 7th October 2024  
+**Version:** 1.1
+**Date:** 9th October 2024  
 **Author:** Linyi Huang
 
 ---
@@ -21,8 +21,9 @@
    - [2.2 Product Functions](#22-product-functions)
    - [2.3 User Classes and Characteristics](#23-user-classes-and-characteristics)
    - [2.4 Operating Environment](#24-operating-environment)
-   - [2.5 Design and Implementation Constraints](#25-design-and-implementation-constraints)
-   - [2.6 Assumptions and Dependencies](#26-assumptions-and-dependencies)
+   - [2.5 Detailed System Architecture](#25-detailed-system-architecture)
+   - [2.6 Design and Implementation Constraints](#26-design-and-implementation-constraints)
+   - [2.7 Assumptions and Dependencies](#27-assumptions-and-dependencies)
 3. [Specific Requirements](#3-specific-requirements)
    - [3.1 Functional Requirements](#31-functional-requirements)
      - [3.1.1 Job Posting Management](#311-job-posting-management)
@@ -40,12 +41,21 @@
      - [3.2.4 Usability](#324-usability)
      - [3.2.5 Reliability](#325-reliability)
      - [3.2.6 Portability](#326-portability)
+   - [3.3 Data Migration Requirements](#33-data-migration-requirements)
+     - [3.3.1 Data Import](#331-data-import)
+     - [3.3.2 Data Mapping](#332-data-mapping)
+     - [3.3.3 Migration Validation](#333-migration-validation)
+     - [3.3.4 Parallel Running](#334-parallel-running)
 4. [External Interface Requirements](#4-external-interface-requirements)
    - [4.1 User Interfaces](#41-user-interfaces)
    - [4.2 Software Interfaces](#42-software-interfaces)
    - [4.3 Hardware Interfaces](#43-hardware-interfaces)
    - [4.4 Communication Interfaces](#44-communication-interfaces)
 5. [System Features](#5-system-features)
+   - [5.1 Core Features](#51-core-features)
+   - [5.2 Supporting Features](#52-supporting-features)
+   - [5.3 Feature Integration](#53-feature-integration)
+   - [5.4 Customization and Scalability](#54-customization-and-scalability)
 6. [Other Non-functional Requirements](#6-other-non-functional-requirements)
    - [6.1 Legal and Regulatory Requirements](#61-legal-and-regulatory-requirements)
    - [6.2 Documentation](#62-documentation)
@@ -141,10 +151,101 @@ The system provides the following key functions:
   - Object Storage: Amazon S3 for resumes and files.
 - **Deployment**
   - Users deploy the system in their own AWS accounts using Infrastructure as Code (IaC) tools like AWS CloudFormation or AWS CDK.
+- **Testing**
+  - Jest is used for unit testing, should be automated and run on every code commit configured in the CI/CD pipeline. The test coverage should be at least 80% for all critical code.
 - **Development Environment**
   - Codebase managed using standard code editors (e.g., VS Code) and version control systems (e.g., Git).
 
-### **2.5 Design and Implementation Constraints**
+### **2.5 Detailed System Architecture**
+
+- **Frontend**
+
+  - Next.js: Provides a modern user interface that allows job seekers to apply for jobs and HR personnel to manage job postings and candidates.
+  - React Context API & Redux: Manages application state.
+  - Tailwind CSS: Provides a utility-first CSS framework for styling.
+  - Axios: Handles API requests.
+
+  The frontend will handle all user interactions, such as displaying job postings, collecting candidate information, and providing HR dashboards. It will connect with backend services through REST APIs.
+
+- **Backend**
+
+  - Node.js: Runtime environment for AWS Lambda functions.
+  - AWS Lambda: Executes backend logic.
+  - Amazon API Gateway: Exposes RESTful APIs.
+
+  The backend business logic is implemented using AWS Lambda, where each Lambda function corresponds to a specific service (e.g., job posting management, resume parsing). The functions are triggered by HTTP requests via AWS API Gateway.
+
+- **API Gateway**
+
+  - AWS API Gateway
+
+  The API Gateway acts as a middleman between the frontend and backend, defining different endpoints like /jobs, /apply, etc. It securely manages incoming requests and triggers the appropriate Lambda function.
+
+- **Database**
+
+  - Amazon DynamoDB
+
+  DynamoDB is used for its scalability and ease of integration with Lambda functions. The schema includes tables such as:
+
+  - JobPostings: Stores details of available job positions.
+  - Candidates: Stores candidate information and resume metadata.
+  - Applications: Tracks each job application and its status.
+
+- **Authentication & Authorization**
+
+  - AWS Cognito
+
+  Cognito manages different user roles:
+
+  - HR users: Can manage job postings, review applications, and configure workflows.
+  - Hiring Managers: Can evaluate candidates, provide feedback, and make hiring decisions.
+  - Candidates: Can search for jobs, submit applications, and communicate with recruiters.
+  - System Administrators: Can manage system deployment, configurations, and maintenance.
+
+- **Storage**
+
+  - Amazon S3
+
+  S3 is used for secure storage of resumes, cover letters, and other files. It provides high-performance, scalable, and durable object storage. Resumes are uploaded directly by candidates and linked to candidate records in DynamoDB.
+
+- **Resume Parsing**
+
+  - Amazon Textract
+  - Amazon Comprehend
+
+  Textract and Comprehend are used to automatically extract key information from resumes. Textract is used for text-based documents, while Comprehend is used for natural language processing tasks like sentiment analysis and entity recognition. When a resume is uploaded, AWS Textract extracts relevant text, and AWS Comprehend is used to identify key entities (such as skills, experience, education) to enrich the candidate profile.
+
+- **Notifications**
+
+  - Amazon SES
+
+  Sends email notifications to candidates (e.g., application receipt) and HR users (e.g., new applications).
+
+- **Infrastructure as Code**
+
+  - AWS CDK
+
+  Infrastructure resources such as Lambda, DynamoDB, API Gateway, S3, Cognito, and SES are defined using AWS CDK to enable consistent, repeatable deployments.
+
+- **Logging & Monitoring**
+
+  - AWS CloudWatch
+
+  All Lambda function logs are directed to CloudWatch for debugging and monitoring purposes. Alarms can be set up to detect anomalies, such as increased error rates.
+
+- **Deployment & CI/CD Pipeline**
+
+  - Jenkins
+
+  Jenkins is used to automate the deployment process. It triggers builds and deployments based on code changes.
+
+- **Testing**
+
+  - Jest
+
+  Jest is used for unit testing, should be automated and run on every code commit configured in the CI/CD pipeline. The test coverage should be at least 80% for all critical code.
+
+### **2.6 Design and Implementation Constraints**
 
 - **AWS Dependency**: The system relies on AWS services and requires an AWS account for deployment.
 - **Customization**: Users must be able to configure the system to suit their specific recruitment workflows.
@@ -152,7 +253,7 @@ The system provides the following key functions:
 - **Scalability**: System should scale automatically based on usage.
 - **Resource Limits**: Must operate within AWS service limits; users may need to request limit increases.
 
-### **2.6 Assumptions and Dependencies**
+### **2.7 Assumptions and Dependencies**
 
 - Users have an AWS account with necessary permissions.
 - Users have basic knowledge of AWS services or will follow provided deployment guides.
@@ -218,15 +319,15 @@ The system provides the following key functions:
 
 #### **3.1.5 Candidate Tracking and Workflow Management**
 
-- **Description**: Track candidate status throughout customizable recruitment workflows.
+- **Description**: Track candidate status throughout customizable recruitment workflows, with workflows configurable per job posting.
 - **Priority**: High
 - **Use Case**:
-  1. HR configures the recruitment workflow (e.g., number of interview stages).
-  2. Recruiter updates candidate status as they progress.
+  1. When creating or editing a job posting, HR configures the specific recruitment workflow for that job (e.g., number of interview stages).
+  2. Recruiter updates candidate status as they progress through the job-specific workflow.
   3. System logs the status changes with timestamps.
-  4. Recruiters and hiring managers can view candidate progress.
-- **Preconditions**: Recruitment workflow is configured.
-- **Postconditions**: Candidate statuses are updated and recorded.
+  4. Recruiters and hiring managers can view candidate progress within the context of the job-specific workflow.
+- **Preconditions**: Job posting is created with a configured workflow.
+- **Postconditions**: Candidate statuses are updated and recorded according to the job-specific workflow.
 
 #### **3.1.6 Communication and Notifications**
 
@@ -253,23 +354,74 @@ The system provides the following key functions:
 
 #### **3.1.8 Configuration Management**
 
-- **Description**: Allow HR to configure recruitment processes and system settings.
+- **Description**: Allow HR to configure system settings and job-specific recruitment processes.
 - **Priority**: High
 - **Use Case**:
   1. HR logs into the admin interface.
-  2. Navigates to "Workflow Configuration."
-  3. Sets the number of interview stages and defines each stage.
+  2. For global settings:
+     a. Navigates to "System Configuration."
+     b. Configures global settings like email templates, user roles, etc.
+  3. For job-specific workflow:
+     a. Navigates to "Job Posting Management."
+     b. Selects a job posting to create or edit.
+     c. In the job posting form, configures the "Recruitment Workflow" section.
+     d. Sets the number of interview stages and defines each stage for this specific job.
   4. Saves the configuration.
-  5. System updates to reflect the new workflow.
+  5. System updates to reflect the new configurations.
 - **Preconditions**: User has admin permissions.
-- **Postconditions**: System operates according to the new configurations.
+- **Postconditions**: System operates according to the new configurations, with job postings having their own specific workflows.
 
 ### **3.2 Non-functional Requirements**
 
 #### **3.2.1 Performance**
 
-- **The system shall respond to user actions within 2 seconds under normal load conditions.**
-- **Shall support at least 500 concurrent users.**
+1. **Response Time**
+   - The system shall respond to user actions within 2 seconds under normal load conditions.
+   - Page load time shall not exceed 3 seconds for 90% of page requests.
+   - API response time shall be under 500ms for 95% of requests.
+
+2. **Throughput**
+   - The system shall support at least 500 concurrent users.
+   - The system shall handle at least 100 job applications per minute during peak times.
+
+3. **Database Performance**
+   - Database queries shall execute in less than 100ms for 95% of requests.
+   - Write operations to the database shall complete in less than 200ms for 95% of operations.
+
+4. **File Upload/Download**
+   - Resume upload time shall not exceed 5 seconds for files up to 10MB in size.
+   - Document retrieval (e.g., resumes, cover letters) shall complete within 3 seconds.
+
+5. **Search Performance**
+   - Job search results shall be returned within 1 second for 90% of searches.
+   - Candidate database searches shall return results within 2 seconds for 90% of searches.
+
+6. **Scalability**
+   - The system shall maintain these performance metrics while scaling to handle a 200% increase in load.
+
+7. **Reporting**
+   - Generation of standard reports shall complete within 5 seconds for 90% of requests.
+   - Complex analytical reports shall complete within 30 seconds.
+
+8. **Batch Processing**
+   - Nightly batch processes (e.g., data aggregation, cleanup) shall complete within a 4-hour window.
+
+9. **Notification Delivery**
+   - Email notifications shall be sent within 1 minute of the triggering event for 95% of cases.
+
+10. **AI/ML Operations**
+    - Resume parsing and analysis shall complete within 10 seconds for 90% of resumes.
+
+11. **Monitoring and Alerts**
+    - The system shall provide real-time performance monitoring.
+    - Alerts shall be generated within 1 minute if performance metrics fall below specified thresholds.
+
+These performance metrics shall be measured and maintained under the following conditions:
+- Normal business hours load (9 AM to 5 PM local time).
+- Peak load periods (e.g., immediately after posting a new job).
+- Across different geographical regions where the system is deployed.
+
+Performance testing shall be conducted regularly to ensure these metrics are consistently met.
 
 #### **3.2.2 Security**
 
@@ -296,6 +448,24 @@ The system provides the following key functions:
 
 - **Deployment scripts and templates shall enable users to deploy the system in their own AWS accounts with minimal effort.**
 - **Configurations shall be externalized to allow easy adjustments without code changes.**
+
+### **3.3 Data Migration Requirements**
+
+- **Description**: The system shall provide tools and processes to facilitate data migration from existing recruitment systems.
+- **Priority**: Medium
+
+#### 3.3.1 Data Import
+- The system shall support bulk import of historical job postings, candidate profiles, and application data.
+- Import processes shall validate data integrity and provide detailed error logs for any import failures.
+
+#### 3.3.2 Data Mapping
+- The system shall provide a flexible data mapping interface to align fields from the source system with the new system.
+
+#### 3.3.3 Migration Validation
+- Post-migration validation tools shall be provided to ensure data accuracy and completeness.
+
+#### 3.3.4 Parallel Running
+- The system shall support a period of parallel running with the old system to ensure a smooth transition.
 
 ---
 
@@ -341,7 +511,55 @@ The system provides the following key functions:
 
 ## **5. System Features**
 
-*(Note: This section can be used to expand on specific system features in detail. For brevity, it is not elaborated here.)*
+## **5. System Features**
+
+This section provides a high-level overview of the key features of the Recruitment Process and Resume Management System. For detailed specifications of each feature, please refer to Section 3.1 Functional Requirements.
+
+### 5.1 Core Features
+
+1. **Job Posting Management** (Section 3.1.1)
+   - Create, edit, publish, and close job postings
+   - Customizable job templates
+
+2. **Online Application and Resume Submission** (Section 3.1.2)
+   - User-friendly job search and application process
+   - Support for various resume formats
+
+3. **Resume Management** (Section 3.1.3)
+   - Secure storage and retrieval of resumes
+   - Advanced search and filtering capabilities
+
+4. **Resume Parsing (AI Integration)** (Section 3.1.4)
+   - Automatic extraction of key information from resumes
+   - AI-powered candidate profile creation
+
+5. **Candidate Tracking and Workflow Management** (Section 3.1.5)
+   - Customizable recruitment workflows
+   - Real-time status tracking and updates
+
+### 5.2 Supporting Features
+
+6. **Communication and Notifications** (Section 3.1.6)
+   - Automated email notifications
+   - In-system messaging capabilities
+
+7. **Reporting and Analytics** (Section 3.1.7)
+   - Customizable reports on recruitment metrics
+   - Data visualization tools
+
+8. **Configuration Management** (Section 3.1.8)
+   - Flexible system settings
+   - User role and permission management
+
+### 5.3 Feature Integration
+
+The system is designed to provide a seamless recruitment experience by integrating these features. For instance, when a candidate submits an application (Feature 2), it triggers the resume parsing (Feature 4), updates the candidate tracking system (Feature 5), and sends out appropriate notifications (Feature 6).
+
+### 5.4 Customization and Scalability
+
+All features are designed with customization in mind, allowing organizations to tailor the system to their specific needs. The use of AWS services ensures scalability, enabling the system to handle increasing loads as the organization grows.
+
+For detailed use cases, priorities, and technical specifications of each feature, please refer to the corresponding subsections in Section 3.1.
 
 ---
 
@@ -372,7 +590,7 @@ The system provides the following key functions:
 
 ### **B. Architectural Diagrams**
 
-*(Include system architecture diagrams, data flow diagrams, and deployment diagrams here.)*
+_(Include system architecture diagrams, data flow diagrams, and deployment diagrams here.)_
 
 ### **C. Deployment Guide Overview**
 
