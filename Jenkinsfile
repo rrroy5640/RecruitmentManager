@@ -39,6 +39,13 @@ pipeline{
                         }
                     }
                 }
+                stage('Install CDK Dependencies') {
+                    steps {
+                        dir('iac') {
+                            sh 'npm install'
+                        }
+                    }
+                }
             }
         }
 
