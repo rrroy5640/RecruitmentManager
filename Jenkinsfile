@@ -56,21 +56,12 @@ pipeline{
         }   
 
         stage('Build and Package'){
-            parallel{
                 stage('Frontend'){
                     steps{
                         dir('frontend'){
                             sh 'npm run build'
                         }
                     }
-                }
-                stage('Backend'){
-                    steps{
-                        dir('backend'){
-                            sh 'npm run build'
-                        }
-                    }
-                }
             }
         }
 
@@ -86,7 +77,7 @@ pipeline{
             }
         }
     }
-    
+
     post{
         success {
             echo 'Pipeline completed successfully!'
