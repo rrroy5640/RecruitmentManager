@@ -34,6 +34,7 @@
      - [3.1.6 Communication and Notifications](#316-communication-and-notifications)
      - [3.1.7 Reporting and Analytics](#317-reporting-and-analytics)
      - [3.1.8 Configuration Management](#318-configuration-management)
+     - [3.1.9 User Authentication and Authorization](#319-user-authentication-and-authorization)
    - [3.2 Non-functional Requirements](#32-non-functional-requirements)
      - [3.2.1 Performance](#321-performance)
      - [3.2.2 Security](#322-security)
@@ -370,6 +371,65 @@ The system provides the following key functions:
   5. System updates to reflect the new configurations.
 - **Preconditions**: User has admin permissions.
 - **Postconditions**: System operates according to the new configurations, with job postings having their own specific workflows.
+
+#### **3.1.9 User Authentication and Authorization**
+
+- **Description**: The system shall use AWS Cognito for user management, authentication, and authorization. Different user roles will have access to specific functionalities based on their permissions.
+- **Priority**: High
+- **Use Case**:
+  1. User attempts to access a protected resource or perform a restricted action.
+  2. System checks if the user is authenticated.
+  3. If not authenticated, user is redirected to the login page.
+  4. After successful authentication, system verifies user's role and permissions.
+  5. Access is granted or denied based on the user's authorization level.
+
+- **User Roles and Access Levels**:
+  1. **Public (Unauthenticated)**
+     - View public job listings
+     - Create a candidate account
+
+  2. **Candidates (Authenticated)**
+     - All public access
+     - Submit job applications
+     - Upload and manage personal resumes
+     - View application status
+     - Update personal profile
+
+  3. **Recruiters/Human Resources (Authenticated)**
+     - All candidate access
+     - Create and manage job postings
+     - Review applications and resumes
+     - Update candidate statuses
+     - Schedule interviews
+     - Access basic reports
+     - Configure recruitment workflows
+
+  4. **Hiring Managers (Authenticated)**
+     - All recruiter access
+     - Provide feedback on candidates
+     - Make hiring decisions
+
+  5. **System Administrators (Authenticated)**
+     - All hiring manager access
+     - Manage user accounts and roles
+     - Configure system settings
+     - Access advanced reports and analytics
+     - Manage system deployment and infrastructure
+     - Monitor system performance and security
+
+- **Authorization Requirements**:
+  - Job Posting Management: Recruiter/HR level and above
+  - Resume Database Access: Recruiter/HR level and above
+  - Candidate Status Updates: Recruiter/HR level and above
+  - Interview Scheduling: Recruiter/HR level and above
+  - Hiring Decisions: Hiring Manager level and above
+  - Report Generation: Recruiter/HR level and above (with varying levels of detail)
+  - User Management: System Administrator only
+  - System Configuration: System Administrator only
+  - Infrastructure Management: System Administrator only
+
+- **Preconditions**: AWS Cognito is properly configured with defined user pools and identity pools.
+- **Postconditions**: Users can only access functionalities and data appropriate to their role.
 
 ### **3.2 Non-functional Requirements**
 

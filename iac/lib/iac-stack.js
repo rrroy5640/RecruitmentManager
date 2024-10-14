@@ -42,7 +42,7 @@ class IacStack extends Stack {
     });
 
     const userPool = new cognito.UserPool(this, 'UserPool', {
-      userPoolName: 'ResumeReviewUserPool',
+      userPoolName: 'UserPool',
       selfSignUpEnabled: true,
       signInAliases: { email: true },
       removalPolicy: RemovalPolicy.DESTROY,
@@ -50,7 +50,7 @@ class IacStack extends Stack {
 
     const userPoolClient = new cognito.UserPoolClient(this, 'UserPoolClient', {
       userPool,
-      userPoolClientName: 'ResumeReviewUserPoolClient',
+      userPoolClientName: 'UserPoolClient',
     });
 
     const hrGroup = new cognito.CfnUserPoolGroup(this, 'HRGroup', {

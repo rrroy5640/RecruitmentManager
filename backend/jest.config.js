@@ -1,7 +1,7 @@
 module.exports = {
   testEnvironment: 'node',
   testMatch: ['<rootDir>/tests/**/*.test.js'],
-  testPathIgnorePatterns: ['/node_modules/', '/.aws-sam/'],
+  testPathIgnorePatterns: ['<rootDir>/node_modules/', '<rootDir>/.aws-sam/'],
   coverageThreshold: {
     global: {
       branches: 80,
