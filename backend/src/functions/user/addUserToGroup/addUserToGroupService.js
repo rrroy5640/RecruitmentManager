@@ -2,7 +2,7 @@ const { CognitoIdentityProviderClient, AdminAddUserToGroupCommand } = require('@
 
 const cognitoClient = new CognitoIdentityProviderClient();
 
-exports.addUserToGroup = async ({ email, groupName }) => {
+async function addUserToGroup({ email, groupName }) {
     if (!email || !groupName) {
         throw new Error('Email and groupName are required');
     }
@@ -24,4 +24,8 @@ exports.addUserToGroup = async ({ email, groupName }) => {
         console.error('Error adding user to group:', error);
         throw new Error('Failed to add user to group');
     }
+}
+
+module.exports = {
+    addUserToGroup
 };

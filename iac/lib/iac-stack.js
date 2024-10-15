@@ -2,6 +2,9 @@ const { Stack, Duration, RemovalPolicy } = require('aws-cdk-lib');
 const s3 = require('aws-cdk-lib/aws-s3');
 const dynamodb = require('aws-cdk-lib/aws-dynamodb');
 const cognito = require('aws-cdk-lib/aws-cognito');
+const lambda = require('aws-cdk-lib/aws-lambda');
+const iam = require('aws-cdk-lib/aws-iam');
+const path = require('path');
 
 class IacStack extends Stack {
   /**
@@ -77,12 +80,43 @@ class IacStack extends Stack {
       description: 'System admin group',
     });
 
-    // The code that defines your stack goes here
+    const backendDistPath = path.resolve(__dirname, '../../backend/dist');
 
-    // example resource
-    // const queue = new sqs.Queue(this, 'IacQueue', {
-    //   visibilityTimeout: Duration.seconds(300)
-    // });
+    const addUserToGroupFunction = new lambda.Function(this, 'AddUserToGroupFunction', {
+      functionName: 'AddUserToGroupFunction',
+      runtime: lambda.Runtime.NODEJS_18_X,
+      code: lambda.Code.fromAsset(backendDistPath),
+      handler: 'addUserToGroup.handler',
+      environment: {
+        USER_POOL_ID: userPool.userPoolId,
+        REGION: this.region,
+      },
+    });
+
+    addUserToGroupFunction.addToRolePolicy(new iam.PolicyStatement({
+      actions: ['cognito-idp:AdminAddUserToGroup'],
+      resources: [userPool.userPoolArn],
+    }));
+
+    // Add GSIs to the tables if needed
+    candidateTable.addGlobalSecondaryIndex({
+      indexName: 'EmailIndex',
+      partitionKey: { name: 'email', type: dynamodb.AttributeType.STRING },
+    });
+
+    jobPostingTable.addGlobalSecondaryIndex({
+      indexName: 'StatusIndex',
+      partitionKey: { name: 'status', type: dynamodb.AttributeType.STRING },
+    });
+
+    applicationTable.addGlobalSecondaryIndex({
+      indexName: 'CandidateIndex',
+      partitionKey: { name: 'candidateId', type: dynamodb.AttributeType.STRING },
+    });
+
+    // Add CloudWatch Logs for Lambda function
+    addUserToGroupFunction.addEnvironment('LOG_LEVEL', 'INFO');
+
   }
 }
 
