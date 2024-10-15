@@ -80,13 +80,13 @@ class IacStack extends Stack {
       description: 'System admin group',
     });
 
-    const backendDistPath = path.resolve(__dirname, '../../backend/dist');
+    const addUserToGroupPath = path.resolve(__dirname, '../../backend/src/functions/user/addUserToGroup');
 
     const addUserToGroupFunction = new lambda.Function(this, 'AddUserToGroupFunction', {
       functionName: 'AddUserToGroupFunction',
       runtime: lambda.Runtime.NODEJS_18_X,
-      code: lambda.Code.fromAsset(backendDistPath),
-      handler: 'addUserToGroup.handler',
+      code: lambda.Code.fromAsset(addUserToGroupPath),
+      handler: 'addUserToGroupHandler.handler',
       environment: {
         USER_POOL_ID: userPool.userPoolId,
         REGION: this.region,

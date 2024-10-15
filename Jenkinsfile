@@ -73,9 +73,6 @@ pipeline{
                 dir('frontend'){
                     sh 'npm run build'
                 }
-                dir('backend'){
-                    sh 'npm run build'
-                }
             }
         }
 
