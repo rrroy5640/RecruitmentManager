@@ -3,6 +3,13 @@ const { CognitoIdentityProviderClient, ConfirmSignUpCommand } = require("@aws-sd
 const cognitoClient = new CognitoIdentityProviderClient();
 
 exports.verifyEmail = async (email, code) => {
+    if (!email || !code) {
+        return {
+            statusCode: 400,
+            body: JSON.stringify({ message: 'Email and code are required' }),
+        };
+    }
+
     try {
         const command = new ConfirmSignUpCommand({
             ClientId: process.env.USER_POOL_CLIENT_ID,
