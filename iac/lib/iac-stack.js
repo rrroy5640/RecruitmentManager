@@ -106,6 +106,42 @@ class IacStack extends Stack {
       resources: [userPool.userPoolArn],
     }));
 
+    const registerUserPath = path.resolve(__dirname, '../../backend/src/functions/user/registerUser');
+
+    const registerUserFunction = new lambda.Function(this, 'RegisterUserFunction', {
+      functionName: 'RegisterUserFunction',
+      runtime: lambda.Runtime.NODEJS_18_X,
+      code: lambda.Code.fromAsset(registerUserPath),
+      handler: 'registerUserHandler.handler',
+      environment: {
+        USER_POOL_ID: userPool.userPoolId,
+        REGION: this.region,
+      },
+    });
+
+    const verifyEmailPath = path.resolve(__dirname, '../../backend/src/functions/user/verifyEmail');
+
+    const verifyEmailFunction = new lambda.Function(this, 'VerifyEmailFunction', {
+      functionName: 'VerifyEmailFunction',
+      runtime: lambda.Runtime.NODEJS_18_X,
+      code: lambda.Code.fromAsset(verifyEmailPath),
+      handler: 'verifyEmailHandler.handler',
+      environment: {
+        USER_POOL_ID: userPool.userPoolId,
+        REGION: this.region,
+      },
+    });
+
+    verifyEmailFunction.addToRolePolicy(new iam.PolicyStatement({
+      actions: ['cognito-idp:ConfirmSignUp'],
+      resources: [userPool.userPoolArn],
+    }));
+
+    registerUserFunction.addToRolePolicy(new iam.PolicyStatement({
+      actions: ['cognito-idp:AdminCreateUser'],
+      resources: [userPool.userPoolArn],
+    }));
+
     // Add GSIs to the tables if needed
     candidateTable.addGlobalSecondaryIndex({
       indexName: 'EmailIndex',
