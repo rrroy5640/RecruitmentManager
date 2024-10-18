@@ -48,7 +48,15 @@ class IacStack extends Stack {
       userPoolName: 'UserPool',
       selfSignUpEnabled: true,
       signInAliases: { email: true },
+      autoVerify: { email: true },
       removalPolicy: RemovalPolicy.DESTROY,
+      passwordPolicy: {
+        minimumLength: 8,
+        requireLowercase: true,
+        requireUppercase: true,
+        requireNumbers: true,
+        requireSymbols: true,
+      },
     });
 
     const userPoolClient = new cognito.UserPoolClient(this, 'UserPoolClient', {

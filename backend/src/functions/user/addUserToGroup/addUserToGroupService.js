@@ -17,12 +17,16 @@ async function addUserToGroup({ email, groupName }) {
         const command = new AdminAddUserToGroupCommand(params);
         await cognitoClient.send(command);
         return {
-            status: 'success',
-            message: 'User added to group successfully',
+            statusCode: 200,
+            body: JSON.stringify({ message: 'User added to group successfully' }),
         };
     } catch (error) {
         console.error('Error adding user to group:', error);
         throw new Error('Failed to add user to group');
+        return {
+            statusCode: 500,
+            body: JSON.stringify({ message: 'Failed to add user to group' }),
+        };
     }
 }
 

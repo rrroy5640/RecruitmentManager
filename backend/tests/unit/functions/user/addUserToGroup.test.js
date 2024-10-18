@@ -33,8 +33,8 @@ describe("addUserToGroup", () => {
       groupName: "Recruiters",
     });
 
-    expect(result.status).toBe("success");
-    expect(result.message).toBe("User added to group successfully");
+    expect(result.statusCode).toBe(200);
+    expect(result.body).toBe(JSON.stringify({ message: 'User added to group successfully' }));
     expect(__mocks__.sendMock).toHaveBeenCalledWith(
       expect.any(AdminAddUserToGroupCommand)
     );
