@@ -182,7 +182,6 @@ class IacStack extends Stack {
     // Add CloudWatch Logs for Lambda function
     addUserToGroupFunction.addEnvironment('LOG_LEVEL', 'INFO');
     registerUserFunction.addEnvironment('LOG_LEVEL', 'INFO');
-    verifyEmailFunction.addEnvironment('LOG_LEVEL', 'INFO');
   }
 }
 
