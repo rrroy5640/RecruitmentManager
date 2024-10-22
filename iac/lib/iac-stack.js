@@ -124,6 +124,26 @@ class IacStack extends Stack {
       resources: [userPool.userPoolArn],
     }));
 
+    const addUserToDefaultGroupPath = path.resolve(__dirname, '../../backend/src/functions/user/addUserToDefaultGroup');
+
+    const addUserToDefaultGroupFunction = new lambda.Function(this, 'AddUserToDefaultGroupFunction', {
+      functionName: 'AddUserToDefaultGroupFunction',
+      runtime: lambda.Runtime.NODEJS_18_X,
+      code: lambda.Code.fromAsset(addUserToDefaultGroupPath),
+      handler: 'addUserToDefaultGroupHandler.handler',
+      environment: {
+        USER_POOL_ID: userPool.userPoolId,
+        REGION: this.region,
+      },
+    });
+
+    addUserToDefaultGroupFunction.addToRolePolicy(new iam.PolicyStatement({
+      actions: ['cognito-idp:AdminAddUserToGroup'],
+      resources: [userPool.userPoolArn],
+    }));
+
+    userPool.addTrigger(cognito.UserPoolOperation.POST_CONFIRMATION, addUserToDefaultGroupFunction);
+
     const api = new gateway.RestApi(this, 'RecruitmentManagerAPI', {
       restApiName: 'RecruitmentManagerAPI',
       description: 'API Gateway for Recruitment Manager',
