@@ -5,6 +5,7 @@ const cognito = require('aws-cdk-lib/aws-cognito');
 const lambda = require('aws-cdk-lib/aws-lambda');
 const iam = require('aws-cdk-lib/aws-iam');
 const path = require('path');
+const gateway = require('aws-cdk-lib/aws-apigateway');
 
 class IacStack extends Stack {
   /**
@@ -87,7 +88,6 @@ class IacStack extends Stack {
       groupName: 'SystemAdmin',
       description: 'System admin group',
     });
-
     const addUserToGroupPath = path.resolve(__dirname, '../../backend/src/functions/user/addUserToGroup');
 
     const addUserToGroupFunction = new lambda.Function(this, 'AddUserToGroupFunction', {
@@ -119,28 +119,29 @@ class IacStack extends Stack {
       },
     });
 
-    const verifyEmailPath = path.resolve(__dirname, '../../backend/src/functions/user/verifyEmail');
-
-    const verifyEmailFunction = new lambda.Function(this, 'VerifyEmailFunction', {
-      functionName: 'VerifyEmailFunction',
-      runtime: lambda.Runtime.NODEJS_18_X,
-      code: lambda.Code.fromAsset(verifyEmailPath),
-      handler: 'verifyEmailHandler.handler',
-      environment: {
-        USER_POOL_ID: userPool.userPoolId,
-        REGION: this.region,
-      },
-    });
-
-    verifyEmailFunction.addToRolePolicy(new iam.PolicyStatement({
-      actions: ['cognito-idp:ConfirmSignUp'],
-      resources: [userPool.userPoolArn],
-    }));
-
     registerUserFunction.addToRolePolicy(new iam.PolicyStatement({
       actions: ['cognito-idp:AdminCreateUser'],
       resources: [userPool.userPoolArn],
     }));
+
+    const api = new gateway.RestApi(this, 'RecruitmentManagerAPI', {
+      restApiName: 'RecruitmentManagerAPI',
+      description: 'API Gateway for Recruitment Manager',
+    });
+
+    const authorizer = new gateway.CognitoUserPoolsAuthorizer(this, 'CognitoAuthorizer', {
+      cognitoUserPools: [userPool],
+    });
+
+    const registerUserResource = api.root.addResource('registerUser');
+    const addUserToGroupResource = api.root.addResource('addUserToGroup');
+
+    registerUserResource.addMethod('POST', new gateway.LambdaIntegration(registerUserFunction));
+    
+    addUserToGroupResource.addMethod('POST', new gateway.LambdaIntegration(addUserToGroupFunction), {
+      authorizer,
+      authorizationType: gateway.AuthorizationType.COGNITO
+    });
 
     // Add GSIs to the tables if needed
     candidateTable.addGlobalSecondaryIndex({
@@ -160,7 +161,8 @@ class IacStack extends Stack {
 
     // Add CloudWatch Logs for Lambda function
     addUserToGroupFunction.addEnvironment('LOG_LEVEL', 'INFO');
-
+    registerUserFunction.addEnvironment('LOG_LEVEL', 'INFO');
+    verifyEmailFunction.addEnvironment('LOG_LEVEL', 'INFO');
   }
 }
 

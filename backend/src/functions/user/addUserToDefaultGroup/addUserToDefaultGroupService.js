@@ -2,15 +2,18 @@ const { CognitoIdentityProviderClient, AdminAddUserToGroupCommand } = require('@
 
 const cognitoClient = new CognitoIdentityProviderClient();
 
-async function addUserToGroup({ email, groupName }) {
-    if (!email || !groupName) {
-        throw new Error('Email and groupName are required');
+async function addUserToDefaultGroup({ email }) {
+    if (!email) {
+        return {
+            statusCode: 400,
+            body: JSON.stringify({ message: 'Email is required' }),
+        };
     }
 
     const params = {
         UserPoolId: process.env.USER_POOL_ID,
         Username: email,
-        GroupName: groupName,
+        GroupName: "Candidates",
     };
 
     try {
@@ -25,6 +28,4 @@ async function addUserToGroup({ email, groupName }) {
     }
 }
 
-module.exports = {
-    addUserToGroup
-};
+module.exports = { addUserToDefaultGroup };
