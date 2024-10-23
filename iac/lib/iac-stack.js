@@ -101,11 +101,6 @@ class IacStack extends Stack {
       },
     });
 
-    addUserToGroupFunction.addToRolePolicy(new iam.PolicyStatement({
-      actions: ['cognito-idp:AdminAddUserToGroup'],
-      resources: [userPool.userPoolArn],
-    }));
-
     const registerUserPath = path.resolve(__dirname, '../../backend/src/functions/user/registerUser');
 
     const registerUserFunction = new lambda.Function(this, 'RegisterUserFunction', {
@@ -118,11 +113,6 @@ class IacStack extends Stack {
         REGION: this.region,
       },
     });
-
-    registerUserFunction.addToRolePolicy(new iam.PolicyStatement({
-      actions: ['cognito-idp:AdminCreateUser'],
-      resources: [userPool.userPoolArn],
-    }));
 
     const addUserToDefaultGroupPath = path.resolve(__dirname, '../../backend/src/functions/user/addUserToDefaultGroup');
 
@@ -137,12 +127,20 @@ class IacStack extends Stack {
       },
     });
 
-    addUserToDefaultGroupFunction.addToRolePolicy(new iam.PolicyStatement({
+    addUserToGroupFunction.addToRolePolicy(new iam.PolicyStatement({
       actions: ['cognito-idp:AdminAddUserToGroup'],
       resources: [userPool.userPoolArn],
     }));
 
-    userPool.addTrigger(cognito.UserPoolOperation.POST_CONFIRMATION, addUserToDefaultGroupFunction);
+    registerUserFunction.addToRolePolicy(new iam.PolicyStatement({
+      actions: ['cognito-idp:AdminCreateUser'],
+      resources: [userPool.userPoolArn],
+    }));
+
+    addUserToDefaultGroupFunction.addToRolePolicy(new iam.PolicyStatement({
+      actions: ['cognito-idp:AdminAddUserToGroup'],
+      resources: [userPool.userPoolArn],
+    }));
 
     const api = new gateway.RestApi(this, 'RecruitmentManagerAPI', {
       restApiName: 'RecruitmentManagerAPI',
@@ -152,7 +150,6 @@ class IacStack extends Stack {
     const authorizer = new gateway.CognitoUserPoolsAuthorizer(this, 'CognitoAuthorizer', {
       cognitoUserPools: [userPool],
     });
-
     const registerUserResource = api.root.addResource('registerUser');
     const addUserToGroupResource = api.root.addResource('addUserToGroup');
 
@@ -162,6 +159,8 @@ class IacStack extends Stack {
       authorizer,
       authorizationType: gateway.AuthorizationType.COGNITO
     });
+
+    userPool.addTrigger(cognito.UserPoolOperation.POST_CONFIRMATION, addUserToDefaultGroupFunction);
 
     // Add GSIs to the tables if needed
     candidateTable.addGlobalSecondaryIndex({
