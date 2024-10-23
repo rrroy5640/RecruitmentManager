@@ -2,7 +2,7 @@ const { CognitoIdentityProviderClient, AdminAddUserToGroupCommand } = require('@
 
 const cognitoClient = new CognitoIdentityProviderClient();
 
-async function addUserToDefaultGroup({ email }) {
+async function addUserToDefaultGroup({ email, userPoolId }) {
     if (!email) {
         return {
             statusCode: 400,
@@ -11,7 +11,7 @@ async function addUserToDefaultGroup({ email }) {
     }
 
     const params = {
-        UserPoolId: process.env.USER_POOL_ID,
+        UserPoolId: userPoolId,
         Username: email,
         GroupName: "Candidates",
     };

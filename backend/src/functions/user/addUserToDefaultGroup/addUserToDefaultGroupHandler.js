@@ -3,10 +3,11 @@ const { addUserToDefaultGroup } = require("./addUserToDefaultGroupService");
 exports.handler = async (event) => {
     console.log('Received event:', JSON.stringify(event, null, 2));
 
-    const email = event.request.userAttributes.email;
+    const userPoolId = event.ResourceProperties.UserPoolId;
+    const email = event.RequestType === 'Create' ? event.Request.userAttributes.email : event.Request.userName;
 
     try {
-        const result = await addUserToDefaultGroup({ email });
+        const result = await addUserToDefaultGroup({ email, userPoolId });
 
         return event;
     } catch (error) {
